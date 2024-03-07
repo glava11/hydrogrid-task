@@ -1,26 +1,77 @@
-import { Connection, Downstream, Gate, Reservoir, TopologyGraph, Turbine } from '../scaffold';
-import { ComponentList } from './CodingChallengeTypes';
+import {Connection, Downstream, Gate, Reservoir, TopologyGraph, Turbine} from '../scaffold';
+import {ComponentList} from './CodingChallengeTypes';
 
 export default function ComponentListAsTopologyGraph(list: ComponentList) {
-  //
-  //
-  // Your implementation goes here!
-  //
-  //
+	const positions: {[key: string]: {x: number; y: number}} = {};
+	const elements: JSX.Element[] = [];
+	const connections: JSX.Element[] = [];
+	let xCounter = 0;
 
-  // Example chart
-  return (
-    <TopologyGraph>
-      <Reservoir x={0} y={0} />
-      <Connection fromX={0} fromY={0} toX={-1} toY={1} />
-      <Gate x={-1} y={1} />
-      <Connection fromX={0} fromY={0} toX={1} toY={1} />
-      <Turbine x={1} y={1} />
-      <Connection fromX={-1} fromY={1} toX={0} toY={2} />
-      <Connection fromX={1} fromY={1} toX={0} toY={2} />
-      <Downstream x={0} y={2} />
-    </TopologyGraph>
-  );
+	// Process reservoirs first
+	const reservoirs = list.filter((item) => item.type === 'reservoir');
+	const reservoirsCount = reservoirs.length;
+	xCounter = reservoirsCount > 1 ? -Math.floor(reservoirsCount / 2) : 0;
+	for (const component of reservoirs) {
+		positions[component.id] = {x: xCounter, y: 0};
+		elements.push(<Reservoir x={xCounter} y={0} />);
+		xCounter += 2;
+	}
+
+	// Then process turbines
+	const turbines = list.filter((item) => item.type === 'turbine');
+	const turbinesCount = turbines.length;
+	xCounter = turbinesCount > 1 ? -Math.floor(turbinesCount / 2) : 0;
+	for (const component of turbines) {
+		positions[component.id] = {x: xCounter, y: 1};
+		elements.push(<Turbine x={xCounter} y={1} />);
+		if ('feedsFrom' in component && component.feedsFrom) {
+			const from = positions[component.feedsFrom];
+			connections.push(<Connection fromX={from.x} fromY={from.y} toX={xCounter} toY={1} />);
+		}
+		xCounter += 2;
+	}
+
+	// Process gates
+	const gates = list.filter((item) => item.type === 'gate');
+	const gatesCount = gates.length;
+	xCounter = gatesCount > 1 ? -Math.floor(gatesCount / 2) : 0;
+	for (const component of gates) {
+		positions[component.id] = {x: xCounter, y: 1};
+		elements.push(<Gate x={xCounter} y={1} />);
+		if ('feedsFrom' in component && component.feedsFrom) {
+			const from = positions[component.feedsFrom];
+			connections.push(<Connection fromX={from.x} fromY={from.y} toX={xCounter} toY={1} />);
+		}
+		if ('spillsTo' in component && component.spillsTo) {
+			const to = positions[component.spillsTo];
+			connections.push(<Connection fromX={xCounter} fromY={1} toX={to.x} toY={to.y} />);
+		}
+		xCounter += 2;
+	}
+
+	// Finally process downstreams
+	const downstreams = list.filter((item) => item.type === 'downstream');
+	xCounter = 0;
+	for (const component of downstreams) {
+		positions[component.id] = {x: xCounter, y: 2};
+		elements.push(<Downstream x={xCounter} y={2} />);
+	}
+
+	// Add connections from turbines to downstreams
+	for (const component of list.filter((item) => item.type === 'turbine')) {
+		if ('spillsTo' in component && component.spillsTo) {
+			const from = positions[component.id];
+			const to = positions[component.spillsTo];
+			connections.push(<Connection fromX={from.x} fromY={from.y} toX={to.x} toY={to.y} />);
+		}
+	}
+
+	return (
+		<TopologyGraph>
+			{elements}
+			{connections}
+		</TopologyGraph>
+	);
 }
 
 // How to use the pre-built chart components (you should have autocomplete with TypeScript):
