@@ -1,4 +1,59 @@
 /* You can put your styles here or in Task2.tsx */
 .todo {
-  font-style: italic;
+	font-style: italic;
+}
+.component-editor {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	max-width: 600px;
+	margin: auto;
+}
+
+.component-editor div {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.component-editor label {
+	display: flex;
+	flex-direction: column;
+	font-size: 1.2em;
+}
+
+.component-editor input {
+	font-size: 1em;
+	padding: 10px;
+	border-radius: 5px;
+	border: 1px solid #ccc;
+}
+
+.component-editor .component-btns {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+}
+.component-editor button {
+	padding: 10px 20px;
+	font-size: 1em;
+	border-radius: 5px;
+	border: none;
+	cursor: pointer;
+	background-color: var(--primary);
+	color: white;
+}
+
+.component-editor button.delete {
+	background-color: #960000;
+}
+
+.component-editor button.save {
+	background-color: #348d07;
+}
+
+.component-editor button:disabled {
+	background-color: #ccc;
+	cursor: not-allowed;
 }
